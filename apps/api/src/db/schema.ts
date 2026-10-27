@@ -1,0 +1,122 @@
+import { sql } from "drizzle-orm";
+import {
+  pgTable,
+  pgEnum,
+  uuid,
+  varchar,
+  text,
+  integer,
+  boolean,
+  timestamp,
+  check,
+  index
+} from "drizzle-orm/pg-core";
+
+export const userRole = pgEnum("user_role", [
+  "administrador",
+  "docente",
+  "estudiante"
+]);
+
+export const reservationStatus = pgEnum("reservation_status", [
+  "confirmada",
+  "cancelada"
+]);
+
+export const users = pgTable("users", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  email: varchar("email", { length: 254 }).notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  role: userRole("role").default("estudiante").notNull(),
+  active: boolean("active").default(true).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull()
+});
+
+export const spaces = pgTable(
+  "spaces",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: varchar("name", { length: 100 }).notNull(),
+    description: text("description"),
+    location: varchar("location", { length: 150 }).notNull(),
+    capacity: integer("capacity").notNull(),
+    active: boolean("active").default(true).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull()
+  },
+  (table) => [
+    check("spaces_capacity_positive", sql`${table.capacity} > 0`)
+  ]
+);
+
+export const reservations = pgTable(
+  "reservations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    spaceId: uuid("space_id")
+      .notNull()
+      .references(() => spaces.id),
+    purpose: varchar("purpose", { length: 250 }).notNull(),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    status: reservationStatus("status").default("confirmada").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull()
+  },
+  (table) => [
+    check(
+      "reservations_valid_period",
+      sql`${table.endsAt} > ${table.startsAt}`
+    ),
+    index("reservations_space_period_idx").on(
+      table.spaceId,
+      table.startsAt,
+      table.endsAt
+    ),
+    index("reservations_user_idx").on(table.userId)
+  ]
+);
+
+export const refreshTokens = pgTable("refresh_tokens", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull()
+});
+
+export const apiKeys = pgTable("api_keys", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 100 }).notNull(),
+  keyHash: text("key_hash").notNull().unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull()
+});
