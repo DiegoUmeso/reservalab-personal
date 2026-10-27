@@ -27,3 +27,6 @@ export interface HealthResponse {
   database: "not_configured" | "up" | "down";
   cache: "not_configured" | "up" | "down";
 }
+export const refreshSchema = z.strictObject({
+  refreshToken: z.string().regex(/^[a-f0-9]{64}$/)
+});

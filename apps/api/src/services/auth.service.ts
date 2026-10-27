@@ -4,7 +4,13 @@ import {
   createUser,
   findUserByEmail
 } from "../repositories/users.repository.js";
-import { createAccessToken } from "./tokens.service.js";
+import {
+  createAccessToken,
+  createRefreshToken
+} from "./tokens.service.js";
+import {
+  saveRefreshToken
+} from "../repositories/refresh-tokens.repository.js";
 
 export async function registerUser(data: RegisterInput) {
   const passwordHash = await hash(data.password, 12);
@@ -36,10 +42,21 @@ export async function loginUser(data: LoginInput) {
     return null;
   }
 
+  const accessToken = createAccessToken(user);
+  const refresh = createRefreshToken();
+
+  await saveRefreshToken({
+    userId: user.id,
+    tokenHash: refresh.tokenHash,
+    expiresAt: refresh.expiresAt
+  });
+
   return {
-    accessToken: createAccessToken(user),
+    accessToken,
+    refreshToken: refresh.token,
     tokenType: "Bearer",
     expiresIn: 900,
+    refreshExpiresAt: refresh.expiresAt,
     user: {
       id: user.id,
       name: user.name,

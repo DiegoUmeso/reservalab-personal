@@ -47,7 +47,7 @@ services:
     ports:
       - "127.0.0.1:3002:3002"
     volumes:
-      - ./mocks:/data
+      - "./mocks:/data"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
       interval: 5s
@@ -56,4 +56,4 @@ services:
       start_period: 10s
 
 volumes:
-  postgres_data:
+  postgres_data: {}

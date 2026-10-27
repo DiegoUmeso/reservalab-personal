@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { randomUUID } from "node:crypto";
+import { randomUUID, randomBytes, createHash } from "node:crypto";
 import { resolve } from "node:path";
 import { config } from "dotenv";
 import type { Role } from "@reservalab/shared";
@@ -62,5 +62,19 @@ export function verifyAccessToken(token: string) {
   return {
     id: payload.sub,
     role
+  };
+  
+}
+export function hashRefreshToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+export function createRefreshToken() {
+  const token = randomBytes(32).toString("hex");
+
+  return {
+    token,
+    tokenHash: hashRefreshToken(token),
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
   };
 }
