@@ -44,6 +44,9 @@ export const spaces = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     name: varchar("name", { length: 100 }).notNull(),
     description: text("description"),
+    building: varchar("building", { length: 100 })
+      .default("Sin asignar")
+      .notNull(),
     location: varchar("location", { length: 150 }).notNull(),
     capacity: integer("capacity").notNull(),
     active: boolean("active").default(true).notNull(),

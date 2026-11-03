@@ -15,6 +15,13 @@
       "when": 1793140073919,
       "tag": "0001_no_overlap",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793675718462,
+      "tag": "0002_space_building",
+      "breakpoints": true
     }
   ]
 }

@@ -30,3 +30,32 @@ export interface HealthResponse {
 export const refreshSchema = z.strictObject({
   refreshToken: z.string().regex(/^[a-f0-9]{64}$/)
 });
+
+export const spaceIdSchema = z.uuid();
+
+export const createSpaceSchema = z.strictObject({
+  name: z.string().trim().min(2).max(100),
+  description: z.string().trim().max(2000).nullable().optional(),
+  building: z.string().trim().min(1).max(100),
+  location: z.string().trim().min(2).max(150),
+  capacity: z.number().int().min(1).max(2147483647),
+  active: z.boolean().optional()
+});
+
+export const updateSpaceSchema = createSpaceSchema
+  .partial()
+  .refine(
+    (data) => Object.values(data).some((value) => value !== undefined),
+    {
+      message: "Debes enviar al menos un campo para actualizar"
+    }
+  );
+
+export const listSpacesQuerySchema = z.strictObject({
+  building: z.string().trim().min(1).max(100).optional(),
+  capacity: z.coerce.number().int().min(1).max(2147483647).optional()
+});
+
+export type CreateSpaceInput = z.infer<typeof createSpaceSchema>;
+export type UpdateSpaceInput = z.infer<typeof updateSpaceSchema>;
+export type ListSpacesQuery = z.infer<typeof listSpacesQuerySchema>;
