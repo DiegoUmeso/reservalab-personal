@@ -3,6 +3,7 @@ import type {
   UpdateSpaceInput,
   ListSpacesQuery
 } from "@reservalab/shared";
+
 import {
   listSpaces,
   findSpaceById,
@@ -11,10 +12,7 @@ import {
   deactivateSpaceById
 } from "../repositories/spaces.repository.js";
 
-import {
-  invalidateCache
-} from "./cache.service.js";
-
+import { invalidateCache } from "./cache.service.js";
 
 export class SpaceNotFoundError extends Error {
   constructor() {
@@ -70,11 +68,15 @@ export async function createSpace(data: CreateSpaceInput) {
 
   validateSchedule(opensAt, closesAt);
 
-  return insertSpace({
+  const space = await insertSpace({
     ...data,
     opensAt,
     closesAt
   });
+
+  await invalidateCache();
+
+  return space;
 }
 
 export async function editSpace(
@@ -98,6 +100,8 @@ export async function editSpace(
     throw new SpaceNotFoundError();
   }
 
+  await invalidateCache();
+
   return space;
 }
 
@@ -107,4 +111,6 @@ export async function deleteSpace(id: string): Promise<void> {
   if (!space) {
     throw new SpaceNotFoundError();
   }
+
+  await invalidateCache();
 }

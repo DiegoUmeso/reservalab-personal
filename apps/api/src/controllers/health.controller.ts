@@ -1,13 +1,19 @@
-import type { Request, Response } from "express";
-import type { HealthResponse } from "@reservalab/shared";
+import type { RequestHandler } from "express";
+import { getHealthStatus } from "../services/health.service.js";
 
-export function getHealth(_req: Request, res: Response): void {
-  const response: HealthResponse = {
-    status: "ok",
-    service: "reservalab-api",
-    database: "not_configured",
-    cache: "not_configured"
-  };
+export const getHealth: RequestHandler = async (_req, res) => {
+  try {
+    const health = await getHealthStatus();
 
-  res.status(200).json(response);
-}
+    res.status(health.status === "ok" ? 200 : 503).json(health);
+  } catch (error) {
+    console.error("Error al consultar el estado del sistema:", error);
+
+    res.status(503).json({
+      status: "error",
+      service: "reservalab-api",
+      database: "down",
+      cache: "down"
+    });
+  }
+};

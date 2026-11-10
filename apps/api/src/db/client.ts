@@ -15,12 +15,14 @@ if (
   !process.env.POSTGRES_DB ||
   !process.env.POSTGRES_PASSWORD
 ) {
-  throw new Error("Faltan las variables de PostgreSQL en el archivo .env");
+  throw new Error(
+    "Faltan las variables de PostgreSQL en el archivo .env"
+  );
 }
 
 export const pool = new Pool({
-  host: "127.0.0.1",
-  port: 5433,
+  host: process.env.POSTGRES_HOST ?? "127.0.0.1",
+  port: Number(process.env.POSTGRES_PORT ?? "5433"),
   user: process.env.POSTGRES_USER,
   database: process.env.POSTGRES_DB,
   password: process.env.POSTGRES_PASSWORD,

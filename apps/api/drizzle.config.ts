@@ -15,7 +15,12 @@ if (!user || !database || !password) {
   throw new Error("Faltan las variables de PostgreSQL en .env");
 }
 
-const url = new URL("postgresql://127.0.0.1:5433");
+const host = process.env.POSTGRES_HOST ?? "127.0.0.1";
+const port = process.env.POSTGRES_PORT ?? "5433";
+
+const url = new URL("postgresql://localhost");
+url.hostname = host;
+url.port = port;
 url.username = user;
 url.password = password;
 url.pathname = `/${database}`;
