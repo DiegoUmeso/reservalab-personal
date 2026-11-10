@@ -22,6 +22,13 @@
       "when": 1793675718462,
       "tag": "0002_space_building",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793677180104,
+      "tag": "0003_space_schedule",
+      "breakpoints": true
     }
   ]
 }

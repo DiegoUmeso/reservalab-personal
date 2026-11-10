@@ -10,13 +10,54 @@ import {
   createSpace,
   editSpace,
   deleteSpace,
-  SpaceNotFoundError
+  SpaceNotFoundError,
+  InvalidSpaceScheduleError
 } from "../services/spaces.service.js";
+
+function isScheduleConstraintError(error: unknown): boolean {
+  const visited = new Set<unknown>();
+  let current = error;
+
+  while (
+    current !== null &&
+    typeof current === "object" &&
+    !visited.has(current)
+  ) {
+    visited.add(current);
+
+    const dbError = current as {
+      code?: string;
+      constraint?: string;
+      cause?: unknown;
+    };
+
+    if (
+      dbError.code === "23514" &&
+      dbError.constraint === "spaces_valid_schedule"
+    ) {
+      return true;
+    }
+
+    current = dbError.cause;
+  }
+
+  return false;
+}
 
 function handleError(error: unknown, res: Response): void {
   if (error instanceof SpaceNotFoundError) {
     res.status(404).json({
       error: error.message
+    });
+    return;
+  }
+
+  if (
+    error instanceof InvalidSpaceScheduleError ||
+    isScheduleConstraintError(error)
+  ) {
+    res.status(400).json({
+      error: "La hora de cierre debe ser posterior a la hora de apertura"
     });
     return;
   }

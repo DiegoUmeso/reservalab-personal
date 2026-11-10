@@ -7,8 +7,16 @@ import {
 } from "../controllers/spaces.controller.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import { requireRoles } from "../middlewares/roles.middleware.js";
+import {
+  availability
+} from "../controllers/availability.controller.js";
 
 export const spacesRouter = Router();
+spacesRouter.get(
+  "/:id/availability",
+  requireAuth,
+  availability
+);
 
 spacesRouter.get("/", requireAuth, list);
 
@@ -31,4 +39,4 @@ spacesRouter.delete(
   requireAuth,
   requireRoles("administrador"),
   remove
-);
+);  

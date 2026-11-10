@@ -7,6 +7,7 @@ import {
   text,
   integer,
   boolean,
+  time,
   timestamp,
   check,
   index
@@ -49,6 +50,8 @@ export const spaces = pgTable(
       .notNull(),
     location: varchar("location", { length: 150 }).notNull(),
     capacity: integer("capacity").notNull(),
+    opensAt: time("opens_at").default("07:00:00").notNull(),
+    closesAt: time("closes_at").default("22:00:00").notNull(),
     active: boolean("active").default(true).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
@@ -58,7 +61,14 @@ export const spaces = pgTable(
       .notNull()
   },
   (table) => [
-    check("spaces_capacity_positive", sql`${table.capacity} > 0`)
+    check(
+      "spaces_capacity_positive",
+      sql`${table.capacity} > 0`
+    ),
+    check(
+      "spaces_valid_schedule",
+      sql`${table.closesAt} > ${table.opensAt}`
+    )
   ]
 );
 
@@ -73,9 +83,15 @@ export const reservations = pgTable(
       .notNull()
       .references(() => spaces.id),
     purpose: varchar("purpose", { length: 250 }).notNull(),
-    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
-    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
-    status: reservationStatus("status").default("confirmada").notNull(),
+    startsAt: timestamp("starts_at", {
+      withTimezone: true
+    }).notNull(),
+    endsAt: timestamp("ends_at", {
+      withTimezone: true
+    }).notNull(),
+    status: reservationStatus("status")
+      .default("confirmada")
+      .notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -103,7 +119,9 @@ export const refreshTokens = pgTable("refresh_tokens", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   tokenHash: text("token_hash").notNull().unique(),
-  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  expiresAt: timestamp("expires_at", {
+    withTimezone: true
+  }).notNull(),
   revokedAt: timestamp("revoked_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
