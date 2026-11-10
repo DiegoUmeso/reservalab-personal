@@ -82,3 +82,21 @@ export type UpdateSpaceInput = z.infer<typeof updateSpaceSchema>;
 export type ListSpacesQuery = z.infer<typeof listSpacesQuerySchema>;
 export type AvailabilityQuery = z.infer<typeof availabilityQuerySchema>;
 export type NowQuery = z.infer<typeof nowQuerySchema>;
+export const reservationIdSchema = z.uuid();
+
+export const createReservationSchema = z.strictObject({
+  spaceId: z.uuid(),
+  purpose: z.string().trim().min(2).max(250),
+  startsAt: z.iso.datetime({ offset: true }),
+  endsAt: z.iso.datetime({ offset: true })
+}).refine(
+  (data) => Date.parse(data.endsAt) > Date.parse(data.startsAt),
+  {
+    message: "El fin debe ser posterior al inicio",
+    path: ["endsAt"]
+  }
+);
+
+export type CreateReservationInput = z.infer<
+  typeof createReservationSchema
+>;
