@@ -100,3 +100,38 @@ export const createReservationSchema = z.strictObject({
 export type CreateReservationInput = z.infer<
   typeof createReservationSchema
 >;
+
+export const apiKeyPermissionSchema = z.enum([
+  "read:spaces",
+  "read:now"
+]);
+
+export const apiKeyIdSchema = z.uuid();
+
+export const createApiKeySchema = z.strictObject({
+  name: z.string().trim().min(2).max(100),
+
+  permissions: z.array(apiKeyPermissionSchema)
+    .min(1)
+    .max(2),
+
+  expiresAt: z.iso.datetime({ offset: true })
+    .nullable()
+    .optional()
+}).refine(
+  (data) =>
+    data.expiresAt == null ||
+    Date.parse(data.expiresAt) > Date.now(),
+  {
+    message: "La expiracion debe ser una fecha futura",
+    path: ["expiresAt"]
+  }
+);
+
+export type ApiKeyPermission = z.infer<
+  typeof apiKeyPermissionSchema
+>;
+
+export type CreateApiKeyInput = z.infer<
+  typeof createApiKeySchema
+>;

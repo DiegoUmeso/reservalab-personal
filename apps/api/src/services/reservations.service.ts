@@ -10,6 +10,8 @@ import {
   cancelReservationById
 } from "../repositories/reservations.repository.js";
 import { getSpace } from "./spaces.service.js";
+import { invalidateCache } from "./cache.service.js";
+import { notifyReservation } from "./notifications.service.js";
 
 export class InvalidReservationError extends Error {
   constructor(message: string) {
@@ -94,7 +96,7 @@ export async function createReservation(
 
   const space = await getSpace(data.spaceId);
 
-  // Obtenemos la fecha local de inicio en Guatemala.
+  // Convertimos el inicio a la fecha local de Guatemala.
   const localDate = new Date(
     startsAt.getTime() - 6 * 60 * 60 * 1000
   ).toISOString().slice(0, 10);
@@ -124,9 +126,21 @@ export async function createReservation(
   }
 
   try {
-    return await insertReservation(userId, data);
+    const reservation = await insertReservation(
+      userId,
+      data
+    );
+
+    await invalidateCache();
+
+    await notifyReservation(
+      "reservation.confirmed",
+      reservation
+    );
+
+    return reservation;
   } catch (error) {
-    // PostgreSQL protege también las solicitudes simultáneas.
+    // PostgreSQL protege contra reservas simultaneas.
     if (isOverlapConstraintError(error)) {
       throw new ReservationConflictError();
     }
@@ -166,4 +180,11 @@ export async function cancelReservation(
   if (!cancelled) {
     throw new ReservationNotFoundError();
   }
+
+  await invalidateCache();
+
+  await notifyReservation(
+    "reservation.cancelled",
+    cancelled
+  );
 }

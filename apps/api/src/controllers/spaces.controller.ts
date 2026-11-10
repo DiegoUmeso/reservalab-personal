@@ -13,6 +13,9 @@ import {
   SpaceNotFoundError,
   InvalidSpaceScheduleError
 } from "../services/spaces.service.js";
+import {
+  cachedQuery
+} from "../services/cache.service.js";
 
 function isScheduleConstraintError(error: unknown): boolean {
   const visited = new Set<unknown>();
@@ -82,11 +85,15 @@ export async function list(
   }
 
   try {
-    const spaces = await getSpaces(result.data);
+   const response = await cachedQuery(
+  `spaces:${JSON.stringify(result.data)}`,
+  async () => ({
+    spaces: await getSpaces(result.data)
+  })
+);
 
-    res.status(200).json({
-      spaces
-    });
+res.set("X-Cache", response.cache);
+res.status(200).json(response.data);
   } catch (error) {
     handleError(error, res);
   }

@@ -29,6 +29,13 @@
       "when": 1793677180104,
       "tag": "0003_space_schedule",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794274023686,
+      "tag": "0004_api_key_permissions",
+      "breakpoints": true
     }
   ]
 }

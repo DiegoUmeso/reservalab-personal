@@ -10,16 +10,22 @@ import { requireRoles } from "../middlewares/roles.middleware.js";
 import {
   availability
 } from "../controllers/availability.controller.js";
+import {
+  requireUserOrApiKey
+} from "../middlewares/api-key.middleware.js";
 
 export const spacesRouter = Router();
 spacesRouter.get(
   "/:id/availability",
-  requireAuth,
+  requireUserOrApiKey("read:spaces"),
   availability
 );
 
-spacesRouter.get("/", requireAuth, list);
-
+spacesRouter.get(
+  "/",
+  requireUserOrApiKey("read:spaces"),
+  list
+);
 spacesRouter.post(
   "/",
   requireAuth,

@@ -4,6 +4,9 @@ import {
   spaceIdSchema
 } from "@reservalab/shared";
 import {
+  cachedQuery
+} from "../services/cache.service.js";
+import {
   getSpaceAvailability
 } from "../services/availability.service.js";
 import {
@@ -36,12 +39,16 @@ export async function availability(
   }
 
   try {
-    const result = await getSpaceAvailability(
-      idResult.data,
-      queryResult.data.date
-    );
+  const response = await cachedQuery(
+  `availability:${idResult.data}:${queryResult.data.date}`,
+  () => getSpaceAvailability(
+    idResult.data,
+    queryResult.data.date
+  )
+);
 
-    res.status(200).json(result);
+res.set("X-Cache", response.cache);
+res.status(200).json(response.data);
   } catch (error) {
     if (error instanceof SpaceNotFoundError) {
       res.status(404).json({

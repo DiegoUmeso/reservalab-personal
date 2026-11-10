@@ -11,6 +11,11 @@ import {
   deactivateSpaceById
 } from "../repositories/spaces.repository.js";
 
+import {
+  invalidateCache
+} from "./cache.service.js";
+
+
 export class SpaceNotFoundError extends Error {
   constructor() {
     super("Espacio no encontrado");

@@ -130,14 +130,39 @@ export const refreshTokens = pgTable("refresh_tokens", {
 
 export const apiKeys = pgTable("api_keys", {
   id: uuid("id").defaultRandom().primaryKey(),
+
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
+
   name: varchar("name", { length: 100 }).notNull(),
+
+  prefix: varchar("prefix", { length: 32 })
+    .default("rl_live_")
+    .notNull(),
+
   keyHash: text("key_hash").notNull().unique(),
-  expiresAt: timestamp("expires_at", { withTimezone: true }),
-  revokedAt: timestamp("revoked_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true })
+
+  permissions: text("permissions")
+    .array()
+    .default(sql`ARRAY[]::text[]`)
+    .notNull(),
+
+  lastUsedAt: timestamp("last_used_at", {
+    withTimezone: true
+  }),
+
+  expiresAt: timestamp("expires_at", {
+    withTimezone: true
+  }),
+
+  revokedAt: timestamp("revoked_at", {
+    withTimezone: true
+  }),
+
+  createdAt: timestamp("created_at", {
+    withTimezone: true
+  })
     .defaultNow()
     .notNull()
 });
